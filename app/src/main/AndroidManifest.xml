@@ -3,8 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Required only if your app needs to access audio files
+     that other apps created. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <!-- Because of using scoped storage for targeting android 10 & higher,
+    requestLegacyExternalStorage="true" is required for supporting android 9 and lower  -->
+
+    <!-- Extra permissions needed for apps running on legacy devices - https://developer.android.com/training/data-storage/shared/media#extra-permissions -->
+    <!-- To devices run on Android 9 & lower can access files, we must request READ_EXTERNAL_STORAGE & WRITE_EXTERNAL_STORAGE permissions -->
+    <!-- For devices run on Android 10 and higher, we use scoped storage with MEDIA STORE API -->
+
     <application
         android:name=".StorageApplication"
+        android:requestLegacyExternalStorage="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
