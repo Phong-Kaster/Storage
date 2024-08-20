@@ -5,11 +5,12 @@ import android.net.Uri
 import androidx.compose.runtime.Stable
 
 @Stable
-data class Song(
+data class Video(
+    val id: Long,
     val contentUri: Uri,
     val name: String,
-    val duration: String,
+    val duration: Int,
     val size: Int,
-    val thumbnail: Bitmap?
+    val thumbnail: Bitmap? = null
 ){
 }

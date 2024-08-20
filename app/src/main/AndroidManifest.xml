@@ -6,8 +6,9 @@
 
     <!-- Required only if your app needs to access audio files
      that other apps created. -->
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_VIDEO"
+        tools:ignore="SelectedPhotoAccess" />
 
     <!-- Because of using scoped storage for targeting android 10 & higher,
     requestLegacyExternalStorage="true" is required for supporting android 9 and lower  -->

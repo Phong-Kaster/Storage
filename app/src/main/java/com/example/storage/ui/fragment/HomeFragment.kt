@@ -1,10 +1,14 @@
 package com.example.storage.ui.fragment
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,12 +16,25 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -25,7 +42,8 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.viewModels
 import com.example.jetpack.core.CoreFragment
 import com.example.jetpack.core.CoreLayout
-import com.example.storage.domain.model.Song
+import com.example.storage.domain.model.Video
+import com.example.storage.ui.fragment.component.VideoElement
 import dagger.hilt.android.AndroidEntryPoint
 
 /***************************************
@@ -45,17 +63,25 @@ class HomeFragment : CoreFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.getAllImages()
+        viewModel.getVideos()
     }
 
     @Composable
     override fun ComposeView() {
         super.ComposeView()
         HomeLayout(
-            songs = viewModel.songs.collectAsState().value,
+            videos = viewModel.videos.collectAsState().value,
             onAddSong = {
-//                viewModel.addSong()
-                viewModel.getAllImages()
+                viewModel.addVideo()
+                viewModel.getVideos()
+            },
+            onRefresh = { viewModel.getVideos() },
+            onRemove = { video: Video ->
+                viewModel.removeVideo(video)
+                viewModel.getVideos()
+            },
+            onRename = { video: Video ->
+
             }
         )
     }
@@ -63,56 +89,77 @@ class HomeFragment : CoreFragment() {
 
 @Composable
 fun HomeLayout(
-    songs: List<Song> = emptyList(),
-    onAddSong: () -> Unit = {}
+    videos: List<Video> = emptyList(),
+    onAddSong: () -> Unit = {},
+    onRefresh: () -> Unit = {},
+    onRename: (Video) -> Unit = {},
+    onRemove: (Video) -> Unit = {},
 ) {
+
+
     CoreLayout(
         backgroundColor = Color.Black,
         bottomBar = {
-            Button(
-                onClick = onAddSong,
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                content = {
-                    Text(
-                        text = "Add Song",
-                        style = TextStyle(
-                            color = Color.White,
-                            fontSize = 20.sp,
+                    .padding(horizontal = 16.dp)
+            ) {
+                Button(
+                    onClick = onAddSong,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    content = {
+                        Text(
+                            text = "Add Song",
+                            style = TextStyle(
+                                color = Color.White,
+                                fontSize = 20.sp,
+                            )
                         )
-                    )
-                }
-            )
+                    }
+                )
+
+                Button(
+                    onClick = onRefresh,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    content = {
+                        Text(
+                            text = "Refresh",
+                            style = TextStyle(
+                                color = Color.White,
+                                fontSize = 20.sp,
+                            )
+                        )
+                    }
+                )
+            }
+
         },
         content = {
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(5.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 20.dp)
                     .statusBarsPadding()
             ) {
                 items(
-                    items = songs,
-                    itemContent = { song ->
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    color = Color.Gray, shape = RoundedCornerShape(15.dp)
-                                )
-                                .padding(vertical = 10.dp, horizontal = 15.dp)
-                        ) {
-                            Text(
-                                text = song.name,
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    color = Color.White
-                                )
-                            )
-                        }
+                    items = videos,
+                    key = { video -> video.name },
+                    itemContent = { video ->
+                        VideoElement(
+                            video = video,
+                            modifier = Modifier,
+                            onRemove = {
+                                onRemove(video)
+                            },
+                            onRename = {
+                                onRename(video)
+                            },
+                        )
                     }
                 )
             }
@@ -123,5 +170,11 @@ fun HomeLayout(
 @Preview
 @Composable
 private fun PreviewHomeLayout() {
-    HomeLayout()
+    HomeLayout(
+        videos = listOf(
+            Video(contentUri = Uri.parse(""), name = "Song 1", duration = 100, size = 100, id = 1),
+            Video(contentUri = Uri.parse(""), name = "Song 2", duration = 100, size = 100, id = 2),
+            Video(contentUri = Uri.parse(""), name = "Song 3", duration = 100, size = 100, id = 3),
+        )
+    )
 }

@@ -9,19 +9,16 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import android.util.Size
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.viewModelScope
 import com.example.storage.StorageApplication
 import com.example.storage.core.CoreViewModel
-import com.example.storage.domain.model.Song
+import com.example.storage.domain.model.Video
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-
 
 @HiltViewModel
 class HomeViewModel
@@ -30,141 +27,136 @@ constructor(
     private val applicationContext: StorageApplication
 ) : CoreViewModel() {
 
-    private var _songs = MutableStateFlow<List<Song>>(emptyList())
-    val songs = _songs.asStateFlow()
+    private var _videos = MutableStateFlow<List<Video>>(emptyList())
+    val videos = _videos.asStateFlow()
 
     init {
-        getAllImages()
-        detectChanges()
+        getVideos()
     }
 
-     fun getAllImages() {
-         Log.d(TAG, "getAllSongs")
-//         val collection =
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-//                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-//            else
-//                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+     fun getVideos() {
+         val videoList = mutableListOf<Video>()
+         val collection =
+             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                 MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+             } else {
+                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+             }
 
-         val collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-
-        val projection = arrayOf(
-            MediaStore.Images.Media._ID,
-            MediaStore.Images.Media.BUCKET_ID,
-            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-            MediaStore.Images.Media.SIZE
-        )
+         val projection = arrayOf(
+             MediaStore.Video.Media._ID,
+             MediaStore.Video.Media.DISPLAY_NAME,
+             MediaStore.Video.Media.DURATION,
+             MediaStore.Video.Media.SIZE
+         )
 
         // Show only videos that are at least 5 minutes in duration.
-        val selection = "${MediaStore.Images.Media.DURATION} >= ?"
-        val selectionArgs = arrayOf(
-            TimeUnit.MILLISECONDS.convert(0, TimeUnit.MINUTES).toString()
-        )
+         val selection = "${MediaStore.Video.Media.DURATION} >= ?"
+         val selectionArgs = arrayOf(TimeUnit.MILLISECONDS.convert(0, TimeUnit.MINUTES).toString())
 
         // Display videos in alphabetical order based on their display name.
-        val sortOrder = "${MediaStore.Images.Media.DISPLAY_NAME} ASC"
+         val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
 
+         val query = applicationContext.contentResolver.query(
+             collection,
+             projection,
+             null,
+             null,
+             sortOrder
+         )
 
-         val songList = mutableListOf<Song>()
-         viewModelScope.launch(Dispatchers.IO) {
+         Log.d(TAG, "getVideos - query is null = ${query == null}")
+         query?.use { cursor ->
+             Log.d(TAG, "getVideos - cursor")
+             // Cache column indices.
+             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+             val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
+             val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+             val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
 
+             while (cursor.moveToNext()) {
+                 // Get values of columns for a given video.
+                 val id: Long = cursor.getLong(idColumn)
+                 val name: String = cursor.getString(nameColumn)
+                 val duration: Int = cursor.getInt(durationColumn)
+                 val size: Int = cursor.getInt(sizeColumn)
 
-             applicationContext.contentResolver.query(
-                 collection,
-                 projection,
-                 null,
-                 null,
-                 sortOrder
-             )?.use { cursor ->
-                 Log.d(TAG, "getEntireVideos cursor")
-                 Log.d(TAG, "getAllImages moveToNext = ${cursor.moveToNext()} ")
-                 while (cursor.moveToNext()) {
-                     // Use an ID column from the projection to get
-                     // a URI representing the media item itself.
+                 val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
 
-                     // Cache column indices.
-                     val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-                     val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID)
-                     val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
-                     val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
-
-                     while (cursor.moveToNext()) {
-                         // Get values of columns for a given video.
-                         val id = cursor.getLong(idColumn)
-                         val name = cursor.getString(nameColumn)
-                         val duration = cursor.getString(durationColumn)
-                         val size = cursor.getInt(sizeColumn)
-
-                         val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-//                         val thumbnail: Bitmap? = loadThumbnail(contentUri = contentUri)
-
-                         // Stores column values and the contentUri in a local object
-                         // that represents the media file.
-                         //videoList += Video(contentUri, name, duration, size)
-
-                         Log.d(TAG, "Images has contentUri $contentUri with name $name, duration $duration")
-                         songList += Song(contentUri, name, duration, size, null)
-                     }
-                 }
-
-                 Log.d(TAG, "getEntireVideos - size = ${songList.size}")
-                 _songs.value = songList
+                 // Stores column values and the contentUri in a local object
+                 // that represents the media file.
+                 videoList += Video(
+                     id = id,
+                     contentUri = contentUri,
+                     name = name,
+                     duration = duration,
+                     size = size,
+                     thumbnail = null
+                 )
+                 Log.d(TAG, "getVideos contentUri $contentUri")
              }
+             Log.d(TAG, "getVideos - videoList size = ${videoList.size} ")
+             _videos.value = videoList
          }
-
-
     }
 
-    private fun loadThumbnail(contentUri: Uri): Bitmap? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            applicationContext.contentResolver.loadThumbnail(contentUri, Size(640, 480), null)
-        else
-            null
-    }
 
-    fun addSong(){
-
-
+    fun addVideo() {
         // Add a specific media item.
         val resolver = applicationContext.contentResolver
 
-        // Find all Images files on the primary external storage device.
-        val ImagesCollection =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-             else
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
 
+        // Find all videos files on the primary external storage device.
+        val collection =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+             else
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI
 
 
         // Publish a new song.
-        val newSongDetails = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, "MySong1.mp3")
+        val videoDetail = ContentValues().apply {
+            put(MediaStore.Video.Media.DISPLAY_NAME, "video_${System.currentTimeMillis()}.mp4")
         }
 
         // Keep a handle to the new song's URI in case you need to modify it
         // later.
         try {
-            val songUri: Uri? = resolver.insert(ImagesCollection, newSongDetails)
-            Log.d(TAG, "addSong success with songUri $songUri")
+            val videoUri: Uri? = resolver.insert(collection, videoDetail)
+
+            if (videoUri == null) {
+                Log.d(TAG, "addVideo - videoUri is null")
+            } else {
+                resolver.openOutputStream(videoUri)?.use { stream ->
+                    // Perform operations on "stream".
+                    applicationContext.assets.open("video_sample.mp4").use { inputStream ->
+                        stream.write(inputStream.readBytes())
+                    }
+                }
+            }
+
+            Log.d(TAG, "addVideo - success with videoUri $videoUri")
         } catch (ex: Exception) {
             ex.printStackTrace()
-            Log.d(TAG, "addSong fail because ${ex.message}")
+            Log.d(TAG, "addVideo - fail because ${ex.message}")
         }
     }
 
-    private fun detectChanges(){
-        val observer = object : ContentObserver(null) {override fun onChange(selfChange: Boolean) {
-            super.onChange(selfChange)
-            viewModelScope.launch {
-                getAllImages()
-            }
+    fun removeVideo(video: Video) {
+        // Remove a specific media item.
+        val resolver = applicationContext.contentResolver
+
+        try {
+            // Perform the actual removal.
+            val numImagesRemoved = resolver.delete(
+                video.contentUri,
+                "${MediaStore.Audio.Media._ID} = ?",
+                arrayOf(video.id.toString())
+            )
+            Log.d(TAG, "removeVideo - numImagesRemoved success = $numImagesRemoved")
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            Log.d(TAG, "removeVideo fail ${ex.message}")
         }
-        }
-        applicationContext.contentResolver.registerContentObserver(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            true,
-            observer
-        )
     }
 }
