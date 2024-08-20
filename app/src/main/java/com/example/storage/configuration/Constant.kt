@@ -36,4 +36,6 @@ object Constant {
     const val FOREGROUND_SERVICE_CHANNEL_DESCRIPTION = "foreground_service_description"
     const val FOREGROUND_SERVICE_ACTION_START = "foreground_service_action_start"
     const val FOREGROUND_SERVICE_ACTION_STOP = "foreground_service_action_stop"
+
+    const val FALSE = 0
 }

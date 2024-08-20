@@ -51,4 +51,19 @@ constructor(
             mediaStoreRepository.removeVideo(video = video)
         }
     }
+
+    fun renameVideo(
+        video: Video,
+        newName: String,
+        onSuccess: () -> Unit = {},
+        onFailure: () -> Unit = {}
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            mediaStoreRepository.renameVideo(
+                video = video, newName = newName,
+                onSuccess = onSuccess,
+                onFailure = onFailure
+            )
+        }
+    }
 }

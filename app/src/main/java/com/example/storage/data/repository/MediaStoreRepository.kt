@@ -72,7 +72,8 @@ constructor(
                 val duration: Int = cursor.getInt(durationColumn)
                 val size: Int = cursor.getInt(sizeColumn)
 
-                val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
+                val contentUri: Uri =
+                    ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
 
                 // Stores column values and the contentUri in a local object
                 // that represents the media file.
@@ -152,6 +153,47 @@ constructor(
         }
 
         // refresh the video list to update UI
+        getVideos()
+    }
+
+    fun renameVideo(
+        video: Video,
+        newName: String,
+        onSuccess: ()->Unit = {},
+        onFailure: ()->Unit = {},
+    ) {
+        // Updates an existing media item.
+        val mediaId = video.id
+        val resolver = applicationContext.contentResolver
+
+        // When performing a single item update, prefer using the ID.
+        val selection = "${MediaStore.Audio.Media._ID} = ?"
+
+        // By using selection + args you protect against improper escaping of // values.
+        val selectionArgs = arrayOf(mediaId.toString())
+
+        // Update an existing song.
+        val updatedSongDetails = ContentValues().apply {
+            put(MediaStore.Audio.Media.DISPLAY_NAME, newName)
+        }
+
+        try {
+            // Use the individual song's URI to represent the collection that's
+            // updated.
+            val numSongsUpdated = resolver.update(
+                video.contentUri,
+                updatedSongDetails,
+                selection,
+                selectionArgs
+            )
+            onSuccess()
+            Log.d(TAG, "renameVideo success $numSongsUpdated")
+        } catch (ex: Exception) {
+            onFailure()
+            ex.printStackTrace()
+            Log.d(TAG, "renameVideo fail ${ex.message}")
+        }
+
         getVideos()
     }
 }

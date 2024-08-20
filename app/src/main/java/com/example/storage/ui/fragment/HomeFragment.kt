@@ -2,6 +2,7 @@ package com.example.storage.ui.fragment
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -44,13 +45,15 @@ import com.example.jetpack.core.CoreFragment
 import com.example.jetpack.core.CoreLayout
 import com.example.storage.domain.model.Video
 import com.example.storage.ui.fragment.component.VideoElement
+import com.example.storage.ui.fragment.component.VideoRenameDialog
+import com.example.storage.ui.fragment.component.VideoRenameLayout
 import dagger.hilt.android.AndroidEntryPoint
 
 /***************************************
- * 1. [Storage updates in Android 11](https://developer.android.com/about/versions/11/privacy/storage)
- * 2. [Access media files from shared storage ](https://developer.android.com/training/data-storage/shared/media)
- * 3. [Data and file storage overview](https://developer.android.com/training/data-storage#scoped-storage)
- * 4. [Access media files](https://developer.android.com/training/data-storage/shared/media#access-other-apps-files)
+ * # 1. [Storage updates in Android 11](https://developer.android.com/about/versions/11/privacy/storage)
+ * # 2. [Access media files from shared storage ](https://developer.android.com/training/data-storage/shared/media)
+ * # 3. [Data and file storage overview](https://developer.android.com/training/data-storage#scoped-storage)
+ * # 4. [Access media files](https://developer.android.com/training/data-storage/shared/media#access-other-apps-files)
  * - Access your own media files - On devices that run Android 10 or higher, you don't need storage-related permissions
  * to access and modify media files that your app owns
  * - Access other apps' media files - To access media files that other apps create, you must declare the appropriate storage-related permissions
@@ -59,7 +62,8 @@ import dagger.hilt.android.AndroidEntryPoint
 class HomeFragment : CoreFragment() {
 
     private val viewModel: HomeViewModel by viewModels()
-
+    private var showDialog by mutableStateOf(false)
+    private var chosenVideo: Video? by mutableStateOf(null)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -75,7 +79,31 @@ class HomeFragment : CoreFragment() {
             onRefresh = { viewModel.getVideos() },
             onRemove = { video: Video -> viewModel.removeVideo(video) },
             onRename = { video: Video ->
+                showDialog = true
+                chosenVideo = video
+            }
+        )
 
+        VideoRenameDialog(
+            video = chosenVideo ?: Video(id = 0, contentUri = Uri.parse(""), name = "", duration = 0, size = 0),
+            enable = showDialog,
+            onDismissRequest = { showDialog = false },
+            onConfirm = { fileName ->
+                if(chosenVideo == null) {
+                    Toast.makeText(requireContext(), "Video is null", Toast.LENGTH_SHORT).show()
+                    return@VideoRenameDialog
+                }
+
+                viewModel.renameVideo(
+                    video = chosenVideo!!,
+                    newName = fileName,
+                    onSuccess = {
+                        Log.d("TAG", "Video renamed successfully")
+                    },
+                    onFailure = {
+                        Log.d("TAG", "Video renamed failed")
+                    }
+                )
             }
         )
     }
@@ -147,12 +175,8 @@ fun HomeLayout(
                         VideoElement(
                             video = video,
                             modifier = Modifier,
-                            onRemove = {
-                                onRemove(video)
-                            },
-                            onRename = {
-                                onRename(video)
-                            },
+                            onRemove = { onRemove(video) },
+                            onRename = { onRename(video) },
                         )
                     }
                 )
