@@ -130,6 +130,7 @@ constructor(
             Log.d(TAG, "addVideo - fail because ${ex.message}")
         }
 
+        // refresh the video list to update UI
         getVideos()
     }
 
@@ -150,6 +151,7 @@ constructor(
             Log.d(TAG, "removeVideo fail ${ex.message}")
         }
 
+        // refresh the video list to update UI
         getVideos()
     }
 }
