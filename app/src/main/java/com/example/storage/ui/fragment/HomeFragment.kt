@@ -71,15 +71,9 @@ class HomeFragment : CoreFragment() {
         super.ComposeView()
         HomeLayout(
             videos = viewModel.videos.collectAsState().value,
-            onAddSong = {
-                viewModel.addVideo()
-                viewModel.getVideos()
-            },
+            onAddSong = { viewModel.addVideo() },
             onRefresh = { viewModel.getVideos() },
-            onRemove = { video: Video ->
-                viewModel.removeVideo(video)
-                viewModel.getVideos()
-            },
+            onRemove = { video: Video -> viewModel.removeVideo(video) },
             onRename = { video: Video ->
 
             }
