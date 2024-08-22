@@ -1,6 +1,5 @@
 package com.example.storage.domain.model
 
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.Stable
 
@@ -11,6 +10,6 @@ data class Video(
     val name: String,
     val duration: Int,
     val size: Int,
-    val thumbnail: Bitmap? = null
+    val dateModified: Long = 0
 ){
 }

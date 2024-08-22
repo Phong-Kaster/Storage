@@ -8,4 +8,9 @@
     <string name="filename_can_not_be_blank">Filename can not be blank</string>
     <string name="filename_can_not_have_more_than_31_characters">Filename can not have more than 31 characters</string>
     <string name="filename_can_not_have_the_following_character"><![CDATA[Filename can not have the following characters: !@#$%&amp;*(){}]]></string>
+    <string name="last_updated">Last updated</string>
+    <string name="share">Share</string>
+    <string name="edit">Edit</string>
+    <string name="rename">Rename</string>
+    <string name="delete">Delete</string>
 </resources>

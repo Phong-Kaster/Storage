@@ -38,7 +38,8 @@ constructor(
             MediaStore.Video.Media._ID,
             MediaStore.Video.Media.DISPLAY_NAME,
             MediaStore.Video.Media.DURATION,
-            MediaStore.Video.Media.SIZE
+            MediaStore.Video.Media.SIZE,
+            MediaStore.Video.Media.DATE_MODIFIED,
         )
 
         // Show only videos that are at least 5 minutes in duration.
@@ -64,6 +65,7 @@ constructor(
             val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
             val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
             val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
+            val dateModifiedColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED)
 
             while (cursor.moveToNext()) {
                 // Get values of columns for a given video.
@@ -71,6 +73,7 @@ constructor(
                 val name: String = cursor.getString(nameColumn)
                 val duration: Int = cursor.getInt(durationColumn)
                 val size: Int = cursor.getInt(sizeColumn)
+                val dateModified: Long = cursor.getLong(dateModifiedColumn)
 
                 val contentUri: Uri =
                     ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
@@ -83,7 +86,7 @@ constructor(
                     name = name,
                     duration = duration,
                     size = size,
-                    thumbnail = null
+                    dateModified = dateModified
                 )
                 Log.d(TAG, "getVideos contentUri $contentUri")
             }

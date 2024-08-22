@@ -96,14 +96,17 @@ dependencies {
 
     // Dependency injection with Hilt - https://developer.android.com/training/dependency-injection/hilt-android#setup
     // Hilt Android Processor - https://mvnrepository.com/artifact/com.google.dagger/hilt-android-compiler
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
-    implementation("androidx.hilt:hilt-navigation-fragment:1.2.0")
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.fragment)
 
     // Preferences DataStore - https://developer.android.com/topic/libraries/architecture/datastore#preferences-datastore-dependencies
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.androidx.datastore.preferences)
 
-
+    // Video Frames - https://coil-kt.github.io/coil/videos/
+    implementation(libs.coil)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.video)
 }
 
 // Dependency injection with Hilt - Allow references to generated code

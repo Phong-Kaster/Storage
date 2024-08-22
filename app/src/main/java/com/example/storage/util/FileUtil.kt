@@ -1,7 +1,9 @@
 package com.example.storage.util
 
+import android.util.Log
 import com.example.storage.R
 import com.example.storage.domain.enums.VideoFormat
+import kotlin.math.roundToInt
 
 object FileUtil {
     /**
@@ -77,5 +79,52 @@ object FileUtil {
         }
 
         return 0
+    }
+
+    /**
+     * From byte to Kilobyte
+     */
+    fun Int.toKilobyte(): Float{
+        return this * 0.001f
+    }
+
+    /**
+     * From Byte to Megabyte
+     */
+    fun Int.toMegabyte(): Float{
+        return this * 0.000001f
+    }
+
+    fun Float.roundTo(n : Int) : Float {
+        return "%.${n}f".format(this).toFloat()
+    }
+
+    /**
+     * From millisecond of video to total watch time
+     * For example: 12381283 milliseconds is equal to 3 hours, 26 minutes, and 21 seconds.
+     */
+    fun Int.toTotalWatchTime(): String {
+        val totalSeconds = (this * 0.001).roundToInt()
+
+        val totalMinutes = totalSeconds / 60
+
+        val hours = totalMinutes / 60
+        val minutes = totalMinutes - hours * 60
+        val seconds = totalSeconds - hours * 60 * 60 - minutes * 60
+
+        Log.d("TAG", "toSecond - totalSeconds = $totalSeconds")
+        Log.d("TAG", "toSecond - totalMinutes = $totalMinutes")
+        Log.d("TAG", "toSecond - hours = $hours")
+        Log.d("TAG", "toSecond - minutes = $minutes")
+        Log.d("TAG", "toSecond - seconds = $seconds")
+
+        val readableHours = if (hours > 9) hours.toString() else "0$hours"
+        val readableMinutes = if (minutes > 9) minutes.toString() else "0$minutes"
+        val readableSeconds = if (seconds > 9) seconds.toString() else "0$seconds"
+
+        return if (hours > 0)
+            "${readableHours}:${readableMinutes}:${readableSeconds}"
+        else
+            "${readableMinutes}:${readableSeconds}"
     }
 }

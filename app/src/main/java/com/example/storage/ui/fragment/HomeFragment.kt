@@ -117,8 +117,6 @@ fun HomeLayout(
     onRename: (Video) -> Unit = {},
     onRemove: (Video) -> Unit = {},
 ) {
-
-
     CoreLayout(
         backgroundColor = Color.Black,
         bottomBar = {

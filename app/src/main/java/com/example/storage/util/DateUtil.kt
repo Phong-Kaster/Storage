@@ -2,6 +2,9 @@ package com.example.jetpack.util
 
 import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -27,6 +30,8 @@ object DateUtil {
     const val PATTERN_MMM = "MMM" // 14 DEC
     const val PATTERN_dd = "dd" // 14
 
+    const val PATTERN_dd_MMMM_yyyy = "dd MMMM yyyy" // 22 August 2024
+    const val PATTERN_dd_MM_yyyy = "dd/MM/yyyy" // 22 August 2024
 
     @SuppressLint("SimpleDateFormat")
     fun Date.formatWithPattern(pattern: String, locale: Locale = Locale.getDefault()): String {
@@ -91,4 +96,20 @@ object DateUtil {
         val seconds = difference / 1000
         return seconds
     }
+
+    @SuppressLint("SimpleDateFormat")
+    fun Long.convertLongToDate(pattern: String = PATTERN_dd_MMMM_yyyy): String {
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val instant = Instant.ofEpochMilli(this * 1000)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+            DateTimeFormatter.ofPattern(pattern).format(
+                instant
+            )
+        } else {
+            val date = Date(this * 1000)
+            SimpleDateFormat(pattern).format(date)
+        }
+    }
+
 }
