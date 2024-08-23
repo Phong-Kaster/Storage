@@ -40,6 +40,7 @@ constructor(
             MediaStore.Video.Media.DURATION,
             MediaStore.Video.Media.SIZE,
             MediaStore.Video.Media.DATE_MODIFIED,
+            MediaStore.Video.Media.DATE_ADDED,
         )
 
         // Show only videos that are at least 5 minutes in duration.
@@ -47,7 +48,7 @@ constructor(
         val selectionArgs = arrayOf(TimeUnit.MILLISECONDS.convert(0, TimeUnit.MINUTES).toString())
 
         // Display videos in alphabetical order based on their display name.
-        val sortOrder = "${MediaStore.Video.Media.DISPLAY_NAME} ASC"
+        val sortOrder = "${MediaStore.Video.Media.DATE_ADDED} ASC"
 
         val query = applicationContext.contentResolver.query(
             collection,
@@ -66,6 +67,7 @@ constructor(
             val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
             val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
             val dateModifiedColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED)
+            val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
 
             while (cursor.moveToNext()) {
                 // Get values of columns for a given video.
@@ -74,9 +76,9 @@ constructor(
                 val duration: Int = cursor.getInt(durationColumn)
                 val size: Int = cursor.getInt(sizeColumn)
                 val dateModified: Long = cursor.getLong(dateModifiedColumn)
+                val dateAdded: Long = cursor.getLong(dateAddedColumn)
+                val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
 
-                val contentUri: Uri =
-                    ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
 
                 // Stores column values and the contentUri in a local object
                 // that represents the media file.
@@ -86,7 +88,8 @@ constructor(
                     name = name,
                     duration = duration,
                     size = size,
-                    dateModified = dateModified
+                    dateModified = dateModified,
+                    dateAdded = dateAdded,
                 )
                 Log.d(TAG, "getVideos contentUri $contentUri")
             }

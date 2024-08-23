@@ -37,27 +37,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.VideoFrameDecoder
-import coil.disk.DiskCache
-import coil.request.CachePolicy
-import coil.request.ErrorResult
 import coil.request.ImageRequest
-import coil.request.SuccessResult
 import coil.request.videoFrameMillis
-import coil.util.DebugLogger
+import com.example.jetpack.core.LocalImageLoader
 import com.example.jetpack.util.DateUtil
 import com.example.jetpack.util.DateUtil.convertLongToDate
 import com.example.storage.R
-import com.example.storage.StorageApplication
 import com.example.storage.domain.enums.VideoAction
 import com.example.storage.domain.model.Video
 import com.example.storage.util.FileUtil.roundTo
 import com.example.storage.util.FileUtil.toMegabyte
 import com.example.storage.util.FileUtil.toTotalWatchTime
-import kotlinx.coroutines.Dispatchers
-import okhttp3.Dispatcher
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -73,17 +66,19 @@ fun VideoElement(
     val context = LocalContext.current
 
     // Video thumbnail
-    val imageLoader = (LocalContext.current.applicationContext as StorageApplication).newImageLoader()
+    val imageLoader = LocalImageLoader.current
 
     // Build an ImageRequest with Coil
     val model = ImageRequest
         .Builder(context)
         .data(video.contentUri)
+        .crossfade(durationMillis = 500)
         .videoFrameMillis(10000)
         .decoderFactory { result, options, _ ->
             VideoFrameDecoder(result.source, options)
         }
         .build()
+
 
 
     Row(
@@ -98,24 +93,15 @@ fun VideoElement(
             .padding(vertical = 10.dp, horizontal = 15.dp)
     ) {
         Box(modifier = Modifier.size(70.dp)) {
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_launcher_background),
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .clip(shape = RoundedCornerShape(10.dp))
-//                    .matchParentSize()
-//            )
 
             AsyncImage(
                 model = model,
-                imageLoader = imageLoader,
+                imageLoader = imageLoader!!,
                 contentDescription = "Video Thumbnail",
                 modifier = Modifier
                     .clip(shape = RoundedCornerShape(10.dp))
                     .matchParentSize()
             )
-
-
 
             Text(
                 text = video.duration.toTotalWatchTime(),

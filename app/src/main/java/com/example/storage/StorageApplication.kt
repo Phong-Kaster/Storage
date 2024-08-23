@@ -24,7 +24,7 @@ class StorageApplication : Application(), ImageLoaderFactory {
             .diskCachePolicy(CachePolicy.ENABLED)
             .diskCache {
                 DiskCache.Builder()
-                    .maxSizePercent(0.25)
+                    .maxSizePercent(0.01)
                     .directory(cacheDir)
                     .build()
             }

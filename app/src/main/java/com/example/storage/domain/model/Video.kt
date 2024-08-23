@@ -10,6 +10,7 @@ data class Video(
     val name: String,
     val duration: Int,
     val size: Int,
-    val dateModified: Long = 0
+    val dateModified: Long = 0,
+    val dateAdded: Long = 0,
 ){
 }

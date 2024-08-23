@@ -32,7 +32,6 @@ import com.example.jetpack.core.CoreLayout
 import com.example.storage.domain.model.Video
 import com.example.storage.ui.fragment.component.VideoElement
 import com.example.storage.ui.fragment.component.VideoRemoveDialog
-import com.example.storage.ui.fragment.component.VideoRemoveLayout
 import com.example.storage.ui.fragment.component.VideoRenameDialog
 import com.example.storage.util.FileUtil
 import dagger.hilt.android.AndroidEntryPoint
@@ -190,7 +189,7 @@ fun HomeLayout(
             ) {
                 items(
                     items = videos,
-                    key = { video -> video.name },
+                    key = { video -> video.name + System.currentTimeMillis() },
                     itemContent = { video ->
                         VideoElement(
                             video = video,

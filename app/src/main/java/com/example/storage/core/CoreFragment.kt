@@ -10,10 +10,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
+import coil.ImageLoader
 import com.example.jetpack.util.AppUtil
+import com.example.storage.StorageApplication
 import com.example.storage.ui.theme.StorageTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
@@ -21,6 +24,8 @@ import java.util.Locale
 
 val LocalLocale = staticCompositionLocalOf { Locale.getDefault() }
 val LocalNavController = staticCompositionLocalOf<NavController?> { null }
+val LocalImageLoader = staticCompositionLocalOf<ImageLoader?>{ null }
+
 
 @AndroidEntryPoint
 open class CoreFragment : Fragment(), CoreBehavior {
@@ -38,6 +43,7 @@ open class CoreFragment : Fragment(), CoreBehavior {
                 CompositionLocalProvider(
                     LocalNavController provides findNavController(),
                     LocalLocale provides requireActivity().resources.configuration.locales[0],
+                    LocalImageLoader provides (LocalContext.current.applicationContext as StorageApplication).newImageLoader(),
                     *compositionLocalProvider().toTypedArray()
                 ) {
                     StorageTheme {
