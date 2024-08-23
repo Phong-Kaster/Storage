@@ -42,17 +42,22 @@ import coil.compose.AsyncImage
 import coil.decode.VideoFrameDecoder
 import coil.disk.DiskCache
 import coil.request.CachePolicy
+import coil.request.ErrorResult
 import coil.request.ImageRequest
+import coil.request.SuccessResult
 import coil.request.videoFrameMillis
 import coil.util.DebugLogger
 import com.example.jetpack.util.DateUtil
 import com.example.jetpack.util.DateUtil.convertLongToDate
 import com.example.storage.R
+import com.example.storage.StorageApplication
 import com.example.storage.domain.enums.VideoAction
 import com.example.storage.domain.model.Video
 import com.example.storage.util.FileUtil.roundTo
 import com.example.storage.util.FileUtil.toMegabyte
 import com.example.storage.util.FileUtil.toTotalWatchTime
+import kotlinx.coroutines.Dispatchers
+import okhttp3.Dispatcher
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -68,27 +73,9 @@ fun VideoElement(
     val context = LocalContext.current
 
     // Video thumbnail
-    val imageLoader = ImageLoader.Builder(context)
-        .memoryCachePolicy(CachePolicy.ENABLED)
-//        .memoryCache {
-//            MemoryCache
-//                .Builder(context)
-//                .maxSizePercent(0.1)
-//                .strongReferencesEnabled(true)
-//                .build()
-//        }
-        .diskCachePolicy(CachePolicy.ENABLED)
-        .diskCache {
-            DiskCache
-                .Builder()
-                .maxSizePercent(0.03)
-                .directory(context.cacheDir)
-                .build()
-        }
-        .logger(DebugLogger())
-        .components { add(VideoFrameDecoder.Factory()) }
-        .build()
+    val imageLoader = (LocalContext.current.applicationContext as StorageApplication).newImageLoader()
 
+    // Build an ImageRequest with Coil
     val model = ImageRequest
         .Builder(context)
         .data(video.contentUri)
@@ -97,6 +84,7 @@ fun VideoElement(
             VideoFrameDecoder(result.source, options)
         }
         .build()
+
 
     Row(
         verticalAlignment = Alignment.CenterVertically,

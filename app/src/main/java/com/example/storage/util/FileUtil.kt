@@ -116,11 +116,11 @@ object FileUtil {
         val minutes = totalMinutes - hours * 60
         val seconds = totalSeconds - hours * 60 * 60 - minutes * 60
 
-        Log.d("TAG", "toSecond - totalSeconds = $totalSeconds")
-        Log.d("TAG", "toSecond - totalMinutes = $totalMinutes")
-        Log.d("TAG", "toSecond - hours = $hours")
-        Log.d("TAG", "toSecond - minutes = $minutes")
-        Log.d("TAG", "toSecond - seconds = $seconds")
+//        Log.d("TAG", "toSecond - totalSeconds = $totalSeconds")
+//        Log.d("TAG", "toSecond - totalMinutes = $totalMinutes")
+//        Log.d("TAG", "toSecond - hours = $hours")
+//        Log.d("TAG", "toSecond - minutes = $minutes")
+//        Log.d("TAG", "toSecond - seconds = $seconds")
 
         val readableHours = if (hours > 9) hours.toString() else "0$hours"
         val readableMinutes = if (minutes > 9) minutes.toString() else "0$minutes"
