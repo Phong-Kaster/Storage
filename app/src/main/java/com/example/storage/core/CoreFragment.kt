@@ -25,6 +25,8 @@ val LocalNavController = staticCompositionLocalOf<NavController?> { null }
 @AndroidEntryPoint
 open class CoreFragment : Fragment(), CoreBehavior {
 
+    protected val TAG = this.javaClass.name
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

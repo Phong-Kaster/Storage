@@ -5,37 +5,23 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,8 +31,10 @@ import com.example.jetpack.core.CoreFragment
 import com.example.jetpack.core.CoreLayout
 import com.example.storage.domain.model.Video
 import com.example.storage.ui.fragment.component.VideoElement
+import com.example.storage.ui.fragment.component.VideoRemoveDialog
+import com.example.storage.ui.fragment.component.VideoRemoveLayout
 import com.example.storage.ui.fragment.component.VideoRenameDialog
-import com.example.storage.ui.fragment.component.VideoRenameLayout
+import com.example.storage.util.FileUtil
 import dagger.hilt.android.AndroidEntryPoint
 
 /***************************************
@@ -62,7 +50,8 @@ import dagger.hilt.android.AndroidEntryPoint
 class HomeFragment : CoreFragment() {
 
     private val viewModel: HomeViewModel by viewModels()
-    private var showDialog by mutableStateOf(false)
+    private var showRenameDialog by mutableStateOf(false)
+    private var showRemoveDialog by mutableStateOf(false)
     private var chosenVideo: Video? by mutableStateOf(null)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -77,19 +66,30 @@ class HomeFragment : CoreFragment() {
             videos = viewModel.videos.collectAsState().value,
             onAddSong = { viewModel.addVideo() },
             onRefresh = { viewModel.getVideos() },
-            onRemove = { video: Video -> viewModel.removeVideo(video) },
-            onRename = { video: Video ->
-                showDialog = true
+            onRemove = { video: Video ->
+                showRemoveDialog = true
                 chosenVideo = video
-            }
+            },
+            onRename = { video: Video ->
+                showRenameDialog = true
+                chosenVideo = video
+            },
+            onShare = { video: Video -> FileUtil.shareVideo(context = requireContext(), video = video) },
+            onEdit = { video: Video -> showToast("Edit clicked") }
         )
 
         VideoRenameDialog(
-            video = chosenVideo ?: Video(id = 0, contentUri = Uri.parse(""), name = "", duration = 0, size = 0),
-            enable = showDialog,
-            onDismissRequest = { showDialog = false },
+            video = chosenVideo ?: Video(
+                id = 0,
+                contentUri = Uri.parse(""),
+                name = "",
+                duration = 0,
+                size = 0
+            ),
+            enable = showRenameDialog,
+            onDismissRequest = { showRenameDialog = false },
             onConfirm = { fileName ->
-                if(chosenVideo == null) {
+                if (chosenVideo == null) {
                     Toast.makeText(requireContext(), "Video is null", Toast.LENGTH_SHORT).show()
                     return@VideoRenameDialog
                 }
@@ -106,6 +106,26 @@ class HomeFragment : CoreFragment() {
                 )
             }
         )
+
+        VideoRemoveDialog(
+            video = chosenVideo ?: Video(
+                id = 0,
+                contentUri = Uri.parse(""),
+                name = "",
+                duration = 0,
+                size = 0
+            ),
+            enable = showRemoveDialog,
+            onDismissRequest = { showRemoveDialog = false },
+            onConfirm = {
+                if (chosenVideo == null) {
+                    Toast.makeText(requireContext(), "Video is null", Toast.LENGTH_SHORT).show()
+                    return@VideoRemoveDialog
+                }
+
+                viewModel.removeVideo(chosenVideo!!)
+            }
+        )
     }
 }
 
@@ -116,6 +136,8 @@ fun HomeLayout(
     onRefresh: () -> Unit = {},
     onRename: (Video) -> Unit = {},
     onRemove: (Video) -> Unit = {},
+    onShare: (Video) -> Unit = {},
+    onEdit: (Video) -> Unit = {},
 ) {
     CoreLayout(
         backgroundColor = Color.Black,
@@ -175,6 +197,8 @@ fun HomeLayout(
                             modifier = Modifier,
                             onRemove = { onRemove(video) },
                             onRename = { onRename(video) },
+                            onShare = { onShare(video) },
+                            onEdit = { onEdit(video) }
                         )
                     }
                 )

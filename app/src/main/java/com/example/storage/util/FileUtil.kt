@@ -1,8 +1,12 @@
 package com.example.storage.util
 
+import android.content.Context
+import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import com.example.storage.R
 import com.example.storage.domain.enums.VideoFormat
+import com.example.storage.domain.model.Video
 import kotlin.math.roundToInt
 
 object FileUtil {
@@ -126,5 +130,22 @@ object FileUtil {
             "${readableHours}:${readableMinutes}:${readableSeconds}"
         else
             "${readableMinutes}:${readableSeconds}"
+    }
+
+    fun shareVideo(context: Context, video: Video) {
+        if(video.contentUri.path.isNullOrEmpty()) {
+            Toast.makeText(context, "Video URI is null", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+
+        val shareIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, video.contentUri)
+            type = "video/mp4"
+        }
+
+        val chooserIntent = Intent.createChooser(shareIntent, "")
+        context.startActivity(chooserIntent)
     }
 }

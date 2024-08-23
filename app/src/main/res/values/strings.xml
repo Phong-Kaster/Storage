@@ -13,4 +13,6 @@
     <string name="edit">Edit</string>
     <string name="rename">Rename</string>
     <string name="delete">Delete</string>
+    <string name="confirm">Confirm</string>
+    <string name="are_you_sure_want_to_delete_this_file">Are you sure want to delete this file</string>
 </resources>

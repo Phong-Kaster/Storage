@@ -48,6 +48,7 @@ import coil.util.DebugLogger
 import com.example.jetpack.util.DateUtil
 import com.example.jetpack.util.DateUtil.convertLongToDate
 import com.example.storage.R
+import com.example.storage.domain.enums.VideoAction
 import com.example.storage.domain.model.Video
 import com.example.storage.util.FileUtil.roundTo
 import com.example.storage.util.FileUtil.toMegabyte
@@ -60,6 +61,8 @@ fun VideoElement(
     modifier: Modifier = Modifier,
     onRename: () -> Unit = {},
     onRemove: () -> Unit = {},
+    onShare: () -> Unit = {},
+    onEdit: () -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -186,29 +189,42 @@ fun VideoElement(
                                 modifier = Modifier.background(color = Color.White),
                                 onDismissRequest = { expanded = false }
                             ) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(modifier = Modifier) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.ic_edit),
-                                                contentDescription = null,
-                                            )
-                                            Text("Edit")
+                                VideoAction.entries.forEach { action ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                                modifier = Modifier
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(id = action.icon),
+                                                    contentDescription = null,
+                                                    tint = Color(0xFF545454),
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                                Text(
+                                                    text = stringResource(id = action.text),
+                                                    style = TextStyle(
+                                                        fontSize = 16.sp,
+                                                        color = Color.Black,
+                                                        fontWeight = FontWeight(400),
+                                                    ),
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
+                                            }
+                                        },
+                                        onClick = {
+                                            expanded = false
+                                            when (action) {
+                                                VideoAction.Share -> onShare()
+                                                VideoAction.Edit -> onEdit()
+                                                VideoAction.Delete -> onRemove()
+                                                VideoAction.Rename -> onRename()
+                                            }
                                         }
-                                    },
-                                    onClick = {
-                                        expanded = false
-                                        onRename()
-                                    }
-                                )
-
-                                DropdownMenuItem(
-                                    text = { Text("Remove") },
-                                    onClick = {
-                                        expanded = false
-                                        onRemove()
-                                    }
-                                )
+                                    )
+                                }
                             }
                         }
                     }
@@ -226,7 +242,11 @@ fun VideoElement(
             )
 
             Text(
-                text = "${stringResource(R.string.last_updated)}: ${video.dateModified.convertLongToDate(DateUtil.PATTERN_dd_MM_yyyy)} ",
+                text = "${stringResource(R.string.last_updated)}: ${
+                    video.dateModified.convertLongToDate(
+                        DateUtil.PATTERN_dd_MM_yyyy
+                    )
+                } ",
                 style = TextStyle(
                     fontSize = 16.sp,
                     fontWeight = FontWeight(400),
